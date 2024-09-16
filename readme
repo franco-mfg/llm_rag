@@ -1,0 +1,15 @@
+per far girare il programma digitare su due terminali (T1 e T2)
+
+T1 - streamlit run web_main_st.py
+T2 - runflask.sh
+
+
+attenzione in rag.py utilizzo mia lib ma si può cancellare tutto e basta avere la funzione:
+
+def do_query(query:str, multiquery=None):
+
+che ritorna
+  return {'answer': risultato della query,
+          'time': tempo impiegato}
+
+
