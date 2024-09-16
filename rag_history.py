@@ -96,7 +96,7 @@ def do_query(query:str, multiquery=None, sid='1-1-0'):
   if len(query)>0:
     # answer=rag.query(query)
     stream_chat=True
-    
+
     nquery={
       "input": query,
       "chat_history": chat_history.get_chat_history_list(sid,func)
@@ -106,10 +106,12 @@ def do_query(query:str, multiquery=None, sid='1-1-0'):
 
     if stream_chat:
       for chunk in rag_chain.stream(nquery):
-        print(chunk)
+        # print(chunk)
         if token := chunk.get("answer"):
           response+=token
-          yield f"{','.join(token)}\n"
+          tmpx=''.join(token)
+          print(tmpx)
+          yield f"{tmpx}\n"
 
       # qui response contiene il testo della risposta
       answer=response

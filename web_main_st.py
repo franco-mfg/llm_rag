@@ -56,10 +56,8 @@ def main():
       #       print(line)
         for line in req.iter_lines():
            if line:
-            print(type(line))
-            # print("--*>",str(line,"utf-8"))
-            print(line.decode("ascii", errors="ignore"))
-            print(str(bytes.decode(line)))
+            print(type(line), line)
+
         dati=json.loads(req.text)
         testo=f"{dati['answer']}\n\n*query in: {dati['time']:.02f}sec*"
         print('>>>',testo)
