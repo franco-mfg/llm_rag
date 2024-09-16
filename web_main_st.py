@@ -48,9 +48,18 @@ def main():
 
       # . . . ~ ~
       print(f"http://127.0.01:5000/api?query={prompt}&sid={s_id}")
-      req=requests.get(f"http://127.0.01:5000/api?query={prompt}&sid={s_id}")
+      req=requests.get(f"http://127.0.01:5000/api?query={prompt}&sid={s_id}", stream=True)
       print(req.status_code)
       if req.status_code==200:
+      # for line in r.iter_lines():
+      #   if line:
+      #       print(line)
+        for line in req.iter_lines():
+           if line:
+            print(type(line))
+            # print("--*>",str(line,"utf-8"))
+            print(line.decode("ascii", errors="ignore"))
+            print(str(bytes.decode(line)))
         dati=json.loads(req.text)
         testo=f"{dati['answer']}\n\n*query in: {dati['time']:.02f}sec*"
         print('>>>',testo)

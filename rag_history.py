@@ -95,12 +95,33 @@ def do_query(query:str, multiquery=None, sid='1-1-0'):
 
   if len(query)>0:
     # answer=rag.query(query)
-    answer=rag_chain.invoke({
+    stream_chat=True
+    
+    nquery={
       "input": query,
       "chat_history": chat_history.get_chat_history_list(sid,func)
-    })
+    }
 
-    chat_history.save_chat_history(sid,query,answer['answer'])
+    response=''
+
+    if stream_chat:
+      for chunk in rag_chain.stream(nquery):
+        print(chunk)
+        if token := chunk.get("answer"):
+          response+=token
+          yield f"{','.join(token)}\n"
+
+      # qui response contiene il testo della risposta
+      answer=response
+    else:
+      response=rag_chain.invoke({
+        "input": query,
+        "chat_history": chat_history.get_chat_history_list(sid,func)
+      })
+      # qui response contiente un set
+      answer=response['answer']
+
+    chat_history.save_chat_history(sid,query,answer)
   else:
     answer='fai una domanda'
 
@@ -108,7 +129,7 @@ def do_query(query:str, multiquery=None, sid='1-1-0'):
 
   print(answer)
 
-  return {'answer':answer["answer"],
+  return {'answer':answer,
           'time': counter}
 
 if __name__ == '__main__':

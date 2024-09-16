@@ -46,7 +46,13 @@ def query():
             response={'answer':'You are not logged in','time': 0}
         else:
             if(query!=None):
-                response=do_query(query, multi in ['si','yes','on','1'], sid=sid)
+                # response=do_query(query, multi in ['si','yes','on','1'], sid=sid)
+                # https://flask.palletsprojects.com/en/2.1.x/patterns/streaming/
+                # app.response_class(generate(), mimetype='text/csv')
+                return app.response_class(
+                     do_query(query, multi in ['si','yes','on','1'], sid=sid),
+                     mimetype='text/plain'
+                )
             else:
                 response={'answer':'no query. Please ask something!'}
 
