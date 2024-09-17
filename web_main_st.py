@@ -2,6 +2,13 @@ import streamlit as st
 import requests, json, os, platform, zlib
 from streamlit.runtime.scriptrunner import get_script_run_ctx
 
+def stream_server_data(prompt, sid):
+  req=requests.get(f"http://127.0.01:5000/api?query={prompt}&sid={sid}", stream=True)
+  if req.status_code==200:
+    for line in req.iter_lines():
+        if line:
+          print(type(line), line)
+          yield str(line,'utf-8')
 
 def main():
   ctx = get_script_run_ctx()
@@ -47,24 +54,31 @@ def main():
       message_container.chat_message("user", avatar="😎").markdown(prompt)
 
       # . . . ~ ~
-      print(f"http://127.0.01:5000/api?query={prompt}&sid={s_id}")
-      req=requests.get(f"http://127.0.01:5000/api?query={prompt}&sid={s_id}", stream=True)
-      print(req.status_code)
-      if req.status_code==200:
-      # for line in r.iter_lines():
-      #   if line:
-      #       print(line)
-        for line in req.iter_lines():
-           if line:
-            print(type(line), line)
+      # print(f"http://127.0.01:5000/api?query={prompt}&sid={s_id}")
+      # req=requests.get(f"http://127.0.01:5000/api?query={prompt}&sid={s_id}", stream=True)
+      # print(req.status_code)
+      # if req.status_code==200:
+      # # for line in r.iter_lines():
+      # #   if line:
+      # #       print(line)
+      #   for line in req.iter_lines():
+      #      if line:
+      #       print(type(line), line)
 
-        dati=json.loads(req.text)
-        testo=f"{dati['answer']}\n\n*query in: {dati['time']:.02f}sec*"
-        print('>>>',testo)
-        st.session_state.messages.append(
-          {"role": "assistant", "content": testo}
-        )
-        message_container.chat_message("assistant", avatar="🤖").markdown(testo)
+      #   dati=json.loads(req.text)
+      #   testo=f"{dati['answer']}\n\n*query in: {dati['time']:.02f}sec*"
+      #   print('>>>',testo)
+      #   st.session_state.messages.append(
+      #     {"role": "assistant", "content": testo}
+      #   )
+      #   message_container.chat_message("assistant", avatar="🤖").markdown(testo)
+      response=''
+      with message_container.chat_message("assistant", avatar="🤖"):
+         response = st.write_stream(stream_server_data(prompt, s_id))
+      print(response)
+      st.session_state.messages.append(
+        {"role": "assistant", "content": response}
+      )
     except Exception as e:
       st.error(e, icon="⛔️")
 

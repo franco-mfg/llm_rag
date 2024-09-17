@@ -106,7 +106,7 @@ def do_query(query:str, multiquery=None, sid='1-1-0'):
 
     if stream_chat:
       for chunk in rag_chain.stream(nquery):
-        # print(chunk)
+        print(chunk)
         if token := chunk.get("answer"):
           response+=token
           tmpx=''.join(token)
