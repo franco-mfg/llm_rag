@@ -1,3 +1,4 @@
 *.db
 __*
+.venv
 test.py

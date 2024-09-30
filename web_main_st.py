@@ -1,33 +1,61 @@
 import streamlit as st
-import requests, json, os, platform, zlib
+# import ptvsd
+import requests, os, platform, zlib, json
+# import simplejson as json
 from streamlit.runtime.scriptrunner import get_script_run_ctx
+
+# __DEBUG__=False
+
+
+def dbg(*args):
+  # global __DEBUG__
+  if not globals().get('__DEBUG__', True):
+     return None
+
+  res=''
+  for i in args:
+    res+=f' {i}'
+
+  print(res)
+
+
 
 def stream_server_data(prompt, sid):
   req=requests.get(f"http://127.0.01:5000/api?query={prompt}&sid={sid}", stream=True)
   if req.status_code==200:
     for line in req.iter_lines():
         if line:
-          print(type(line), line)
-          yield str(line,'utf-8')
+          dbg(type(line), line)
+          # bytes_to_str=str(line,'utf-8')
+          # print(type(dataLine), dataLine)
+          dbg('qui')
+          jsData=json.loads(line)
+          dbg('qua')
+          dataLine=''
+          for key in jsData:
+            dbg('Key',key)
+            match key:
+              case 'answer':
+                dataLine+=dataLine+jsData[key]
+              case 'time':
+                tm=jsData[key]
+                dbg(type(tm),tm)
+                dbg('time '+f"\n\n*query in: {float(tm):.02f}sec*")
+                dataLine+=dataLine+f"\n\n*query in: {float(tm):.02f}sec*"
+                dbg("dataline:",dataLine)
+          yield dataLine # str(dataLine,'utf-8')
 
 def main():
   ctx = get_script_run_ctx()
 
   st.title('Ollama test')
 
-  print('ISID',ctx.session_id)
+  dbg('ISID',ctx.session_id)
 
   if 'SID' not in st.session_state:
     st.session_state['SID']=ctx.session_id
-    # if platform.system() == "Windows":
-    #   pcID=platform.uname().node
-    # else:
-    #   pcID=os.uname()[1]
-
-    # st.session_state['SID'] = str(zlib.crc32(pcID.encode()))
-    # print('pcID', pcID)
   else:
-    print(' SID',st.session_state.SID)
+    dbg(' SID',st.session_state.SID)
 
   s_id=st.session_state.SID
 
@@ -36,13 +64,14 @@ def main():
   message_container = st.container(height=500, border=True)
 
   if "messages" not in st.session_state:
-        st.session_state.messages = []
+    st.session_state.messages = []
 
   for message in st.session_state.messages:
-      print('',end='.')
-      avatar = "🤖" if message["role"] == "assistant" else "😎"
-      with message_container.chat_message(message["role"], avatar=avatar):
-          st.markdown(message["content"])
+    print('',end='.')
+    avatar = "🤖" if message["role"] == "assistant" else "😎"
+    with message_container.chat_message(message["role"], avatar=avatar):
+        st.markdown(message["content"])
+
   print('')
 
   if prompt := st.chat_input("Enter a prompt here..."):
@@ -53,29 +82,12 @@ def main():
 
       message_container.chat_message("user", avatar="😎").markdown(prompt)
 
-      # . . . ~ ~
-      # print(f"http://127.0.01:5000/api?query={prompt}&sid={s_id}")
-      # req=requests.get(f"http://127.0.01:5000/api?query={prompt}&sid={s_id}", stream=True)
-      # print(req.status_code)
-      # if req.status_code==200:
-      # # for line in r.iter_lines():
-      # #   if line:
-      # #       print(line)
-      #   for line in req.iter_lines():
-      #      if line:
-      #       print(type(line), line)
-
-      #   dati=json.loads(req.text)
-      #   testo=f"{dati['answer']}\n\n*query in: {dati['time']:.02f}sec*"
-      #   print('>>>',testo)
-      #   st.session_state.messages.append(
-      #     {"role": "assistant", "content": testo}
-      #   )
-      #   message_container.chat_message("assistant", avatar="🤖").markdown(testo)
       response=''
       with message_container.chat_message("assistant", avatar="🤖"):
          response = st.write_stream(stream_server_data(prompt, s_id))
+         dbg(f"...{response}")
       print(response)
+
       st.session_state.messages.append(
         {"role": "assistant", "content": response}
       )
@@ -92,4 +104,7 @@ st.set_page_config(
 )
 
 if __name__ == "__main__":
+    # ptvsd.enable_attach(address=('localhost', 5678), redirect_output=True)
+    # ptvsd.wait_for_attach()
+    # __DEBUG__=False
     main()

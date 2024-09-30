@@ -1,0 +1,4 @@
+requests
+flask
+langchain_community
+langchain_chroma

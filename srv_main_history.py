@@ -6,6 +6,7 @@ import sys
 sys.path.append('../')
 
 import pytools.utils as tls
+from pytools.debug  import Debug
 
 pkg_list=[
   'requests',
@@ -23,10 +24,11 @@ from flask import request, jsonify, send_file
 from rag_history import do_query
 
 app = flask.Flask(__name__)
+dbg = Debug()
 
 @app.route('/')
 def home():
-    print(f'getting...file')
+    dbg.print(f'getting...file')
     return send_file('index.html', mimetype='text/html')
 
 @app.route('/api', methods=['GET','POST'])
@@ -40,7 +42,7 @@ def query():
         query=request.args.get("query",None)
         multi=request.args.get("multi",None)
         sid  =request.args.get("sid",None)
-        print(f'q={query}')
+        dbg.print(f'q={query}')
 
         if sid is None:
             response={'answer':'You are not logged in','time': 0}
@@ -56,7 +58,7 @@ def query():
             else:
                 response={'answer':'no query. Please ask something!'}
 
-        print(response)
+        dbg.print(response)
 
         return jsonify(response)
 
@@ -83,4 +85,5 @@ def info():
     return jsonify(info)
 
 if __name__ == '__main__':
+    __DEBUG__=False
     app.run(debug=True, port=5080, host="0.0.0.0")

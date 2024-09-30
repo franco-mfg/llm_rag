@@ -1,4 +1,4 @@
-import os, sys, time
+import os, sys, time, json
 
 os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1" # per evitare warning in codedebug
 os.environ['USER_AGENT'] = 'LegalAI Agent/0.1'
@@ -21,8 +21,9 @@ from langchain_chroma import Chroma
 from langchain_core.messages import HumanMessage
 
 from pytools.sqlitedb import SqliteChatHistory
+from pytools.debug import Debug
 
-
+dbg=Debug()
 
 llmModel='qwen2:1.5b'
 
@@ -106,12 +107,18 @@ def do_query(query:str, multiquery=None, sid='1-1-0'):
 
     if stream_chat:
       for chunk in rag_chain.stream(nquery):
-        print(chunk)
+        dbg.print(chunk)
         if token := chunk.get("answer"):
           response+=token
           tmpx=''.join(token)
-          print(tmpx)
-          yield f"{tmpx}\n"
+          dbg.print(tmpx)
+          js_chunk=json.dumps(chunk)
+          yield f"{js_chunk}\n"
+
+      counter=time.perf_counter()-tm_on
+      stime='{"time": '+f'"{counter}"'+"}"
+      dbg.print(stime)
+      yield f'{stime}\n'
 
       # qui response contiene il testo della risposta
       answer=response
@@ -129,7 +136,7 @@ def do_query(query:str, multiquery=None, sid='1-1-0'):
 
   counter=time.perf_counter()-tm_on
 
-  print(answer)
+  dbg.print(answer)
 
   return {'answer':answer,
           'time': counter}
